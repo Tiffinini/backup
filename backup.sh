@@ -69,6 +69,12 @@ if [ ! -f "$BACKUP_FROM_DIR/.gocryptfs.reverse.conf" ]; then
 	exit 1
 fi
 
+if [ ! -f "$LOCAL_KEYFILE" ]; then
+	echo "Error: Couldn't find keyfile required for directory encryption."
+	echo "Place keyfile with encryption key at $LOCAL_KEYFILE"
+	exit 1
+fi
+
 # Check to ensure the target to mount the encrypted view is empty.
 mkdir -p $ENCRYPTED_LOCAL_MOUNTPOINT
 
@@ -81,7 +87,7 @@ if ! check_mountpoint_empty; then
 	if ! check_mountpoint_empty; then
 		echo "$ENCRYPTED_LOCAL_MOUNTPOINT is still not empty after attempting to fix."
 		echo "Manual intervention required. Aborting."
-		post_to_webhook "⚠ ERROR: Encrypted mountpoint $ENCRYPTED_LOCAL_MOUNTPOINT wasn't empty and couldn't fix! Backup aborted!"
+		post_to_webhook ":warning: ERROR: Encrypted mountpoint $ENCRYPTED_LOCAL_MOUNTPOINT wasn't empty and couldn't fix! Backup aborted!"
 		exit 1
 	fi
 
@@ -93,7 +99,7 @@ if $CRYPT_COMMAND $BACKUP_FROM_DIR $ENCRYPTED_LOCAL_MOUNTPOINT; then
 	echo "Encrypted view of $BACKUP_FROM_DIR is available at $ENCRYPTED_LOCAL_MOUNTPOINT"
 else
 	echo "Encrypted mount failed."
-	post_to_webhook "⚠ ERROR: Mounting encrypted copy of $BACKUP_FROM_DIR failed! Backup aborted!"
+	post_to_webhook ":warning: ERROR: Mounting encrypted copy of $BACKUP_FROM_DIR failed! Backup aborted!"
 	exit 1
 fi
 
@@ -105,6 +111,8 @@ while true; do
 		echo "Backup succeeded!"
 		break
 	fi
+
+	sleep 30
 done
 
 cleanup
