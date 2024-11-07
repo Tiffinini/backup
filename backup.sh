@@ -10,7 +10,7 @@ LOCAL_KEYFILE=/root/wikibackup.key
 WEBHOOK_URL="https://discord.com/api/webhooks/1303680827246514188/CGdw1RBoQgH0Os9Hgv-h6Vk1nOl8CnB9wTELHANnZAg7auA7OQ4e_7-RtiyGxnI06a48"
 
 CRYPT_COMMAND="gocryptfs --ro --one-file-system --reverse --passfile $LOCAL_KEYFILE"
-SYNC_COMMAND="rsync -P -a -z --delete"
+SYNC_COMMAND="rsync -P -a -z --delete --numeric-ids --rsync-path='sudo rsync'"
 
 check_mountpoint_empty() {
 	if [ -z "$(ls -A $ENCRYPTED_LOCAL_MOUNTPOINT)" ]; then
@@ -107,7 +107,7 @@ fi
 post_to_webhook "⏳ Starting encrypted backup of Wiki data..."
 
 while true; do
-	if $SYNC_COMMAND $ENCRYPTED_LOCAL_MOUNTPOINT/ $BACKUP_REMOTE_SERVER_USER@$BACKUP_TO_SERVER:$BACKUP_TO_DIR; then
+	if eval "$SYNC_COMMAND $ENCRYPTED_LOCAL_MOUNTPOINT/ $BACKUP_REMOTE_SERVER_USER@$BACKUP_TO_SERVER:$BACKUP_TO_DIR"; then
 		echo "Backup succeeded!"
 		break
 	fi
